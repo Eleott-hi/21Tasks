@@ -43,7 +43,7 @@ paths:
       - admin
     post:
       consumes:
-      - application/json
+      - application/x-www-form-urlencoded
       description: Post a new article from the admin panel
       parameters:
       - description: Article Title

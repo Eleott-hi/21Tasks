@@ -1,20 +1,23 @@
 package main
 
 import (
-    "database/sql"
-    "fmt"
-    "html/template"
-    "log"
-    "net/http"
-    "os"
-    "strconv"
+	"database/sql"
+	"fmt"
+	"html/template"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+	"time"
 
-    "github.com/julienschmidt/httprouter"
-    _ "github.com/lib/pq"
-    "github.com/russross/blackfriday/v2"
-    httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/julienschmidt/httprouter"
+	_ "github.com/lib/pq"
+	"github.com/russross/blackfriday/v2"
+	httpSwagger "github.com/swaggo/http-swagger"
 
-    _ "main/docs" // Swagger docs
+	_ "main/docs" // Swagger docs
 )
 
 // @title My Blog API
@@ -24,67 +27,90 @@ import (
 // @BasePath /
 
 var (
-    templates      *template.Template
-    db             *sql.DB
-    adminUsername  string
-    adminPassword  string
+	templates     *template.Template
+	db            *sql.DB
+	adminUsername string
+	adminPassword string
 )
 
+type Article struct {
+	ID        int
+	Title     string
+	Content   string
+	CreatedAt time.Time
+}
+
 func init() {
-    funcMap := template.FuncMap{
-        "sub": func(a, b int) int {
-            return a - b
-        },
-        "add": func(a, b int) int {
-            return a + b
-        },
-        "safeHTML": func(s string) template.HTML {
-            return template.HTML(s)
-        },
-    }
+	funcMap := template.FuncMap{
+		"sub": func(a, b int) int {
+			return a - b
+		},
+		"add": func(a, b int) int {
+			return a + b
+		},
+		"safeHTML": func(s string) template.HTML {
+			return template.HTML(s)
+		},
+	}
 
-    templates = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.html"))
+	templates = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.html"))
 
-    file, err := os.Open("admin_credentials.txt")
-    if err != nil {
-        log.Fatal("Error opening admin credentials file:", err)
-    }
-    defer file.Close()
+	file, err := os.Open("admin_credentials.txt")
+	if err != nil {
+		log.Fatal("Error opening admin credentials file:", err)
+	}
+	defer file.Close()
 
-    var dbUser, dbPassword, dbName string
-    _, err = fmt.Fscanf(file, "admin_username: %s\nadmin_password: %s\ndb_user: %s\ndb_password: %s\ndb_name: %s\n",
-        &adminUsername, &adminPassword, &dbUser, &dbPassword, &dbName)
-    if err != nil {
-        log.Fatal("Error reading admin credentials:", err)
-    }
+	var dbUser, dbPassword, dbName, db_scripts string
+	_, err = fmt.Fscanf(file, "admin_username: %s\nadmin_password: %s\ndb_user: %s\ndb_password: %s\ndb_name: %s\n",
+		&adminUsername, &adminPassword, &dbUser, &dbPassword, &dbName)
+	if err != nil {
+		log.Fatal("Error reading admin credentials:", err)
+	}
 
-    psqlInfo := fmt.Sprintf("host=localhost port=5432 user=%s password=%s dbname=%s sslmode=disable",
-        dbUser, dbPassword, dbName)
-    db, err = sql.Open("postgres", psqlInfo)
-    if err != nil {
-        log.Fatal("Error connecting to the database:", err)
-    }
+	psqlInfo := fmt.Sprintf("host=localhost port=5432 user=%s password=%s dbname=%s sslmode=disable",
+		dbUser, dbPassword, dbName)
+	db, err = sql.Open("postgres", psqlInfo)
+	if err != nil {
+		log.Fatal("Error connecting to the database:", err)
+	}
 
-    err = db.Ping()
-    if err != nil {
-        log.Fatal("Error pinging the database:", err)
-    }
+	err = db.Ping()
+	if err != nil {
+		log.Fatal("Error pinging the database:", err)
+	}
+
+	f, err := io.ReadAll(file)
+	if err != nil {
+		log.Fatal("Error reading admin credentials:", err)
+	}
+	db_scripts = string(f)
+
+	db_scripts = strings.SplitAfter(db_scripts, "-- SQL scripts")[1]
+
+	// Create tables if they don't exist
+	_, err = db.Exec(db_scripts)
+	if err != nil {
+		log.Fatal("Error creating articles table:", err)
+	}
+
 }
 
 func main() {
-    router := httprouter.New()
-    router.GET("/", Index)
-    router.GET("/post/:id", ViewPost)
-    router.GET("/admin", Admin)
-    router.POST("/admin", AdminPost)
-    router.GET("/login", Login)
-    router.POST("/login", LoginPost)
-    router.Handler("GET", "/swagger/*any", httpSwagger.WrapHandler)
-    router.ServeFiles("/css/*filepath", http.Dir("css"))
-    router.ServeFiles("/images/*filepath", http.Dir("images"))
-    router.ServeFiles("/js/*filepath", http.Dir("js"))
+	router := httprouter.New()
+	router.GET("/", Index)
+	router.GET("/post/:id", ViewPost)
+	router.GET("/admin", Admin)
+	router.POST("/admin", AdminPost)
+	router.GET("/login", Login)
+	router.POST("/login", LoginPost)
+	router.Handler("GET", "/swagger/*any", httpSwagger.WrapHandler)
+	router.ServeFiles("/css/*filepath", http.Dir("css"))
+	router.ServeFiles("/images/*filepath", http.Dir("images"))
+	router.ServeFiles("/js/*filepath", http.Dir("js"))
 
-    log.Fatal(http.ListenAndServe(":8888", router))
+	log.Println("Server started on port 8888")
+	log.Fatal(http.ListenAndServe(":8888", router))
 }
 
 // Index godoc
@@ -97,47 +123,40 @@ func main() {
 // @Success 200 {string} string "Homepage HTML"
 // @Router / [get]
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-    page := r.URL.Query().Get("page")
-    pageNum, err := strconv.Atoi(page)
-    if err != nil || pageNum < 1 {
-        pageNum = 1
-    }
-    offset := (pageNum - 1) * 3
+	page := r.URL.Query().Get("page")
+	pageNum, err := strconv.Atoi(page)
+	if err != nil || pageNum < 1 {
+		pageNum = 1
+	}
+	offset := (pageNum - 1) * 3
 
-    rows, err := db.Query("SELECT id, title, content, created_at FROM articles ORDER BY created_at DESC LIMIT 3 OFFSET $1", offset)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
-    defer rows.Close()
+	rows, err := db.Query("SELECT id, title, content, created_at FROM articles ORDER BY created_at DESC LIMIT 3 OFFSET $1", offset)
+	if err != nil {
+		fmt.Println("AAA")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
 
-    var articles []struct {
-        ID      int
-        Title   string
-        Content string
-    }
+	var articles []Article
 
-    for rows.Next() {
-        var article struct {
-            ID      int
-            Title   string
-            Content string
-        }
-        err = rows.Scan(&article.ID, &article.Title, &article.Content)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
-        }
-        if len(article.Content) > 200 {
-            article.Content = article.Content[:200] + "..."
-        }
-        articles = append(articles, article)
-    }
+	for rows.Next() {
+		var article Article
+		err = rows.Scan(&article.ID, &article.Title, &article.Content, &article.CreatedAt)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if len(article.Content) > 200 {
+			article.Content = article.Content[:200] + "..."
+		}
+		articles = append(articles, article)
+	}
 
-    templates.ExecuteTemplate(w, "index.html", map[string]interface{}{
-        "Articles": articles,
-        "Page":     pageNum,
-    })
+	templates.ExecuteTemplate(w, "index.html", map[string]interface{}{
+		"Articles": articles,
+		"Page":     pageNum,
+	})
 }
 
 // ViewPost godoc
@@ -151,22 +170,22 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 // @Failure 404 {string} string "Not Found"
 // @Router /post/{id} [get]
 func ViewPost(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-    id := ps.ByName("id")
+	id := ps.ByName("id")
 
-    var article struct {
-        Title   string
-        Content string
-    }
+	var article struct {
+		Title   string
+		Content string
+	}
 
-    err := db.QueryRow("SELECT title, content FROM articles WHERE id = $1", id).Scan(&article.Title, &article.Content)
-    if err != nil {
-        http.NotFound(w, r)
-        return
-    }
+	err := db.QueryRow("SELECT title, content FROM articles WHERE id = $1", id).Scan(&article.Title, &article.Content)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
 
-    article.Content = string(blackfriday.Run([]byte(article.Content)))
+	article.Content = string(blackfriday.Run([]byte(article.Content)))
 
-    templates.ExecuteTemplate(w, "post.html", article)
+	templates.ExecuteTemplate(w, "post.html", article)
 }
 
 // Admin godoc
@@ -178,31 +197,31 @@ func ViewPost(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 // @Success 200 {string} string "Admin Panel HTML"
 // @Router /admin [get]
 func Admin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-    templates.ExecuteTemplate(w, "admin.html", nil)
+	templates.ExecuteTemplate(w, "admin.html", nil)
 }
 
 // AdminPost godoc
 // @Summary Post a new article
 // @Description Post a new article from the admin panel
 // @Tags admin
-// @Accept  json
+// @Accept  application/x-www-form-urlencoded
 // @Produce  html
 // @Param title formData string true "Article Title"
 // @Param content formData string true "Article Content"
 // @Success 302 {string} string "Redirect to homepage"
 // @Router /admin [post]
-func AdminPost(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-    r.ParseForm()
-    title := r.FormValue("title")
-    content := r.FormValue("content")
+func AdminPost(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	r.ParseForm()
+	title := r.FormValue("title")
+	content := r.FormValue("content")
 
-    _, err := db.Exec("INSERT INTO articles (title, content) VALUES ($1, $2)", title, content)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
+	_, err := db.Exec("INSERT INTO articles (title, content) VALUES ($1, $2)", title, content)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    http.Redirect(w, r, "/", http.StatusFound)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // Login godoc
@@ -214,7 +233,7 @@ func AdminPost(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 // @Success 200 {string} string "Login Page HTML"
 // @Router /login [get]
 func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-    templates.ExecuteTemplate(w, "login.html", nil)
+	templates.ExecuteTemplate(w, "login.html", nil)
 }
 
 // LoginPost godoc
@@ -228,13 +247,13 @@ func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 // @Success 302 {string} string "Redirect to admin panel"
 // @Router /login [post]
 func LoginPost(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-    r.ParseForm()
-    username := r.FormValue("username")
-    password := r.FormValue("password")
+	r.ParseForm()
+	username := r.FormValue("username")
+	password := r.FormValue("password")
 
-    if username == adminUsername && password == adminPassword {
-        http.Redirect(w, r, "/admin", http.StatusFound)
-    } else {
-        http.Redirect(w, r, "/login", http.StatusFound)
-    }
+	if username == adminUsername && password == adminPassword {
+		http.Redirect(w, r, "/admin", http.StatusFound)
+	} else {
+		http.Redirect(w, r, "/login", http.StatusFound)
+	}
 }

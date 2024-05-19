@@ -71,7 +71,7 @@ const docTemplate = `{
             "post": {
                 "description": "Post a new article from the admin panel",
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "text/html"
