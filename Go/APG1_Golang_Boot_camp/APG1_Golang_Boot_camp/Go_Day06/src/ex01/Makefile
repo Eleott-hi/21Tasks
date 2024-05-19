@@ -13,5 +13,3 @@ build: go.mod
 
 go.mod:
 	go mod init $(PROJECT)
-
-
