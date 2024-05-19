@@ -1,0 +1,134 @@
+basePath: /
+host: localhost:8888
+info:
+  contact: {}
+  description: This is a simple blog API with admin panel, markdown support, and pagination.
+  title: My Blog API
+  version: "1.0"
+paths:
+  /:
+    get:
+      consumes:
+      - application/json
+      description: Get the homepage with a list of articles
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: Homepage HTML
+          schema:
+            type: string
+      summary: Show the homepage
+      tags:
+      - public
+  /admin:
+    get:
+      consumes:
+      - application/json
+      description: Get the admin panel for posting new articles
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: Admin Panel HTML
+          schema:
+            type: string
+      summary: Show the admin panel
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      description: Post a new article from the admin panel
+      parameters:
+      - description: Article Title
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Article Content
+        in: formData
+        name: content
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Redirect to homepage
+          schema:
+            type: string
+      summary: Post a new article
+      tags:
+      - admin
+  /login:
+    get:
+      consumes:
+      - application/json
+      description: Get the login page
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: Login Page HTML
+          schema:
+            type: string
+      summary: Show the login page
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      description: Login to the admin panel
+      parameters:
+      - description: Admin Username
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: Admin Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Redirect to admin panel
+          schema:
+            type: string
+      summary: Login to admin panel
+      tags:
+      - admin
+  /post/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a single post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: Post HTML
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Show a single post
+      tags:
+      - public
+swagger: "2.0"
