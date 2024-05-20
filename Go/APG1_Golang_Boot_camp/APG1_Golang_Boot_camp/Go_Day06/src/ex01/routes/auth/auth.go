@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"ex01/config"
 	"ex01/utils"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -68,10 +70,15 @@ func (ar *AuthRoute) login(c *fiber.Ctx) error {
 		})
 	}
 
-	adminUsername := "admin"
-	adminPassword := "password"
+	is_admin := false
+	for _, admin := range config.Config.AdminInfo.Admins {
+		if admin.Username == user.Username && admin.Password == user.Password {
+			is_admin = true
+			break
+		}
+	}
 
-	if !(user.Username == adminUsername && user.Password == adminPassword) {
+	if !is_admin {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Invalid username or password",
 		})
@@ -90,6 +97,7 @@ func (ar *AuthRoute) login(c *fiber.Ctx) error {
 		Name:     "token",
 		Value:    token,
 		HTTPOnly: true,
+		Expires:  time.Now().Add(time.Minute),
 	})
 
 	return nil
@@ -103,5 +111,12 @@ func (ar *AuthRoute) login(c *fiber.Ctx) error {
 // @Router /auth/logout [post]
 func (ar *AuthRoute) logout(c *fiber.Ctx) error {
 	c.ClearCookie("token")
+	c.Cookie(&fiber.Cookie{
+		Name:     "token",
+		Value:    "",
+		HTTPOnly: true,
+		Expires:  time.Unix(0, 0),
+	})
+	log.Println("User logged out")
 	return nil
 }

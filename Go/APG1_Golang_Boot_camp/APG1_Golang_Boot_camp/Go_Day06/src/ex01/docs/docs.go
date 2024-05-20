@@ -25,7 +25,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "admin"
+                    "articles"
                 ],
                 "summary": "Post a new article",
                 "parameters": [
@@ -64,7 +64,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public"
+                    "articles"
                 ],
                 "summary": "Show a single post",
                 "parameters": [

@@ -19,7 +19,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "admin"
+                    "articles"
                 ],
                 "summary": "Post a new article",
                 "parameters": [
@@ -58,7 +58,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "public"
+                    "articles"
                 ],
                 "summary": "Show a single post",
                 "parameters": [

@@ -25,7 +25,7 @@ func New(service article.IService) *fiber.App {
 	router.Get("/:id", ar.get)
 	router.Post("/",
 		auth.GetUserMiddleware,
-		// ar.checkAuthorization,
+		ar.checkAuthorization,
 		ar.create,
 	)
 
@@ -46,7 +46,7 @@ func (ar *ArticleRoute) getAll(c *fiber.Ctx) error {
 // GetPostById godoc
 // @Summary Show a single post
 // @Description Get a single post by ID
-// @Tags public
+// @Tags articles
 // @Accept  json
 // @Produce  json
 // @Param id path int true "Post ID"
@@ -74,7 +74,7 @@ func (ar *ArticleRoute) get(c *fiber.Ctx) error {
 // CreatePost godoc
 // @Summary Post a new article
 // @Description Post a new article from the admin panel
-// @Tags admin
+// @Tags articles
 // @Accept  application/x-www-form-urlencoded
 // @Produce application/json
 // @Param title formData string true "Article Title"
@@ -107,7 +107,7 @@ func (ar *ArticleRoute) create(c *fiber.Ctx) error {
 }
 
 func (ar *ArticleRoute) checkAuthorization(c *fiber.Ctx) error {
-	if user := c.UserContext().Value("user"); user == nil {
+	if user := c.Locals("user"); user == nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
 		})

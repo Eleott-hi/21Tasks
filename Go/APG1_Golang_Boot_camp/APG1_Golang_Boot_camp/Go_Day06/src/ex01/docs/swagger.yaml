@@ -31,7 +31,7 @@ paths:
             type: nil
       summary: Post a new article
       tags:
-      - admin
+      - articles
   /articles/{id}:
     get:
       consumes:
@@ -56,7 +56,7 @@ paths:
             type: json
       summary: Show a single post
       tags:
-      - public
+      - articles
   /auth/login:
     post:
       consumes:
