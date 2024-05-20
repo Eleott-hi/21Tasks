@@ -29,5 +29,4 @@ func main() {
 
 	log.Println("Server started on port 3000")
 	log.Fatal(app.Listen(":3000"))
-
 }
