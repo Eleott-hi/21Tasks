@@ -127,43 +127,6 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "post": {
-                "description": "Login to the admin panel",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "text/html"
-                ],
-                "tags": [
-                    "admin"
-                ],
-                "summary": "Login to admin panel",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Admin Username",
-                        "name": "username",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Admin Password",
-                        "name": "password",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "302": {
-                        "description": "Redirect to admin panel",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
             }
         },
         "/post/{id}": {

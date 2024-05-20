@@ -1,8 +1,0 @@
-Application:
-  ex03
-CheckForUpdates:
-  false
-Port:
-  8080
-Source:
-  YAML

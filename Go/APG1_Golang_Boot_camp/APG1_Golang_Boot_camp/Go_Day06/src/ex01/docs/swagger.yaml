@@ -81,31 +81,6 @@ paths:
       summary: Show the login page
       tags:
       - admin
-    post:
-      consumes:
-      - application/json
-      description: Login to the admin panel
-      parameters:
-      - description: Admin Username
-        in: formData
-        name: username
-        required: true
-        type: string
-      - description: Admin Password
-        in: formData
-        name: password
-        required: true
-        type: string
-      produces:
-      - text/html
-      responses:
-        "302":
-          description: Redirect to admin panel
-          schema:
-            type: string
-      summary: Login to admin panel
-      tags:
-      - admin
   /post/{id}:
     get:
       consumes:
