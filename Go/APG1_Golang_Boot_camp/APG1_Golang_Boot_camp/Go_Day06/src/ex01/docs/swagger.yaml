@@ -6,41 +6,33 @@ info:
   title: My Blog API
   version: "1.0"
 paths:
-  /:
-    get:
+  /login:
+    post:
       consumes:
-      - application/json
-      description: Get the homepage with a list of articles
+      - application/x-www-form-urlencoded
+      description: Login to the admin panel
       parameters:
-      - description: Page number
-        in: query
-        name: page
-        type: integer
+      - description: Admin Username
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: Admin Password
+        in: formData
+        name: password
+        required: true
+        type: string
       produces:
-      - text/html
+      - text/plain
       responses:
         "200":
-          description: Homepage HTML
+          description: Logged in
           schema:
             type: string
-      summary: Show the homepage
-      tags:
-      - public
-  /admin:
-    get:
-      consumes:
-      - application/json
-      description: Get the admin panel for posting new articles
-      produces:
-      - text/html
-      responses:
-        "200":
-          description: Admin Panel HTML
-          schema:
-            type: string
-      summary: Show the admin panel
+      summary: Login to admin panel
       tags:
       - admin
+  /post:
     post:
       consumes:
       - application/x-www-form-urlencoded
@@ -57,28 +49,13 @@ paths:
         required: true
         type: string
       produces:
-      - text/html
-      responses:
-        "302":
-          description: Redirect to homepage
-          schema:
-            type: string
-      summary: Post a new article
-      tags:
-      - admin
-  /login:
-    get:
-      consumes:
       - application/json
-      description: Get the login page
-      produces:
-      - text/html
       responses:
-        "200":
-          description: Login Page HTML
+        "201":
+          description: Created
           schema:
-            type: string
-      summary: Show the login page
+            type: ""
+      summary: Post a new article
       tags:
       - admin
   /post/{id}:
@@ -98,7 +75,7 @@ paths:
         "200":
           description: Post HTML
           schema:
-            type: string
+            type: json
         "404":
           description: Not Found
           schema:

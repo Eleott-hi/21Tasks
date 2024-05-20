@@ -15,30 +15,38 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/": {
-            "get": {
-                "description": "Get the homepage with a list of articles",
+        "/login": {
+            "post": {
+                "description": "Login to the admin panel",
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
-                    "text/html"
+                    "text/plain"
                 ],
                 "tags": [
-                    "public"
+                    "admin"
                 ],
-                "summary": "Show the homepage",
+                "summary": "Login to admin panel",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
+                        "type": "string",
+                        "description": "Admin Username",
+                        "name": "username",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Admin Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Homepage HTML",
+                        "description": "Logged in",
                         "schema": {
                             "type": "string"
                         }
@@ -46,35 +54,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin": {
-            "get": {
-                "description": "Get the admin panel for posting new articles",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "text/html"
-                ],
-                "tags": [
-                    "admin"
-                ],
-                "summary": "Show the admin panel",
-                "responses": {
-                    "200": {
-                        "description": "Admin Panel HTML",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
+        "/post": {
             "post": {
                 "description": "Post a new article from the admin panel",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
                 "produces": [
-                    "text/html"
+                    "application/json"
                 ],
                 "tags": [
                     "admin"
@@ -97,33 +84,10 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "302": {
-                        "description": "Redirect to homepage",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/login": {
-            "get": {
-                "description": "Get the login page",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "text/html"
-                ],
-                "tags": [
-                    "admin"
-                ],
-                "summary": "Show the login page",
-                "responses": {
-                    "200": {
-                        "description": "Login Page HTML",
-                        "schema": {
-                            "type": "string"
+                            "type": ""
                         }
                     }
                 }
@@ -155,7 +119,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Post HTML",
                         "schema": {
-                            "type": "string"
+                            "type": "json"
                         }
                     },
                     "404": {
