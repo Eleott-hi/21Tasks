@@ -3,6 +3,9 @@ all: vagrant_down vagrant_up
 docker_compose_up:
 	vagrant ssh vm1 -c 'cd /vagrant && sudo docker-compose up'
 
+docker_compose_down:
+	vagrant ssh vm1 -c 'cd /vagrant && sudo docker-compose up'
+
 vagrant_up:
 	vagrant up --provision-with=shell
 	make docker_compose_up

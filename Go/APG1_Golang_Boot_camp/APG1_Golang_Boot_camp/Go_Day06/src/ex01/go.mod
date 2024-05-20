@@ -5,7 +5,7 @@ go 1.21.1
 require (
 	github.com/arsmn/fiber-swagger/v2 v2.31.1
 	github.com/gofiber/fiber/v2 v2.52.4
-	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/lib/pq v1.10.9
 	github.com/swaggo/swag v1.16.3
 	gorm.io/driver/postgres v1.5.7

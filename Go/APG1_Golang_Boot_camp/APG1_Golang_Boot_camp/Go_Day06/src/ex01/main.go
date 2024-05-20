@@ -10,7 +10,7 @@ import (
 	swagger "github.com/arsmn/fiber-swagger/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -24,7 +24,7 @@ var (
 	db            *gorm.DB
 	adminUsername string
 	adminPassword string
-	serviceSecret string
+	serviceSecret []byte
 )
 
 type (
@@ -32,12 +32,6 @@ type (
 		gorm.Model
 		Title   string `json:"title"`
 		Content string `json:"content"`
-	}
-
-	User struct {
-		gorm.Model
-		Username string `json:"username"`
-		Password string `json:"password"`
 	}
 )
 
@@ -78,12 +72,12 @@ func main() {
 		return c.SendString("Hello, World!")
 	})
 	app.Get("/post/:id", GetPostById)
-	app.Post("/post", CreatePost)
+	app.Post("/post", IsAdminMiddleware, CreatePost)
 	app.Post("/login", Login)
+	app.Post("/logout", Logout)
 	// app.GET("/admin", GetUser(Admin))
 	// app.POST("/admin", GetUser(AdminPost))
 	// app.GET("/login", Login)
-	// app.POST("/login", LoginPost)
 	app.Get("/swagger/*", swagger.HandlerDefault)
 	// app.ServeFiles("/css/*filepath", http.Dir("css"))
 	// app.ServeFiles("/images/*filepath", http.Dir("images"))
@@ -118,7 +112,7 @@ func GetPostById(c *fiber.Ctx) error {
 
 	var article Article
 
-	db.First(&article, 1)
+	db.First(&article, id)
 	if article.ID == 0 {
 		return c.Status(fiber.StatusNotFound).SendString("Not Found")
 	}
@@ -180,10 +174,12 @@ func Login(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	is_admin := user.Username == adminUsername && user.Password == adminPassword
+	if !(user.Username == adminUsername && user.Password == adminPassword) {
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid username or password")
+	}
+
 	token, err := generateJWT(jwt.MapClaims{
 		"username": user.Username,
-		"is_admin": is_admin,
 	})
 
 	if err != nil {
@@ -201,6 +197,32 @@ func Login(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).SendString(token)
 }
 
+func Logout(c *fiber.Ctx) error {
+	c.ClearCookie("token")
+	return c.Status(fiber.StatusOK).SendString("Logged out")
+}
+
+func IsAdminMiddleware(c *fiber.Ctx) error {
+	token := c.Cookies("token", "")
+	if token == "" {
+		c.Status(fiber.StatusUnauthorized)
+		return nil
+	}
+
+	payload, err := decodeJWT(token)
+	if err != nil {
+		c.ClearCookie("token")
+		return c.Status(fiber.StatusUnauthorized).SendString(err.Error())
+	}
+
+	user := (*payload)["username"]
+
+	c.Locals("user", user)
+	c.Next()
+
+	return nil
+}
+
 func generateJWT(payload jwt.MapClaims) (string, error) {
 	if payload == nil {
 		return "", errors.New("payload is nil")
@@ -209,10 +231,41 @@ func generateJWT(payload jwt.MapClaims) (string, error) {
 	payload["exp"] = time.Now().Add(time.Minute).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 
-	tokenString, err := token.SignedString(serviceSecret)
+	log.Default().Println(token)
+
+	tokenString, err := token.SignedString([]byte(serviceSecret))
 	if err != nil {
 		return "", err
 	}
 
 	return tokenString, nil
+}
+
+func decodeJWT(tokenString string) (*jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return serviceSecret, nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse token: %w", err)
+	}
+
+	// Check if the token is valid
+	if !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	// Check if the token has expired
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if ok {
+		exp := claims["exp"].(float64)
+		if time.Unix(int64(exp), 0).Before(time.Now()) {
+			return nil, fmt.Errorf("token has expired")
+		}
+	}
+
+	return &claims, nil
 }
