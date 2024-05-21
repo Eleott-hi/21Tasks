@@ -17,10 +17,12 @@ go.mod:
 dev: go.mod
 	go get github.com/githubnemo/CompileDaemon
 	go install github.com/githubnemo/CompileDaemon
+#	export PATH=$PATH:$(go env GOPATH)/bin
 	CompileDaemon -directory=. \
 		-build="make build" \
 		-command="make run" \
 		-polling \
 		-exclude-dir="docs" \
+		-include="*.html" \
 		-graceful-kill \
 		-color

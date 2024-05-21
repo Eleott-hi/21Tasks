@@ -5,6 +5,7 @@ go 1.21.1
 require (
 	github.com/arsmn/fiber-swagger/v2 v2.31.1
 	github.com/gofiber/fiber/v2 v2.52.4
+	github.com/gofiber/template/html/v2 v2.1.1
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/lib/pq v1.10.9
 	github.com/swaggo/swag v1.16.3
@@ -19,6 +20,8 @@ require (
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
 	github.com/go-openapi/spec v0.20.6 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
+	github.com/gofiber/template v1.8.3 // indirect
+	github.com/gofiber/utils v1.1.0 // indirect
 	github.com/google/uuid v1.5.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect

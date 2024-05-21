@@ -57,7 +57,7 @@ func GetUserMiddleware(c *fiber.Ctx) error {
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
-// @Router /auth/login [post]
+// @Router /api/auth/login [post]
 func (ar *AuthRoute) login(c *fiber.Ctx) error {
 	var user struct {
 		Username string `form:"username"`
@@ -108,7 +108,7 @@ func (ar *AuthRoute) login(c *fiber.Ctx) error {
 // @Description Clear the authentication token.
 // @Tags auth
 // @Success 200 {string} string "ok"
-// @Router /auth/logout [post]
+// @Router /api/auth/logout [post]
 func (ar *AuthRoute) logout(c *fiber.Ctx) error {
 	c.ClearCookie("token")
 	c.Cookie(&fiber.Cookie{

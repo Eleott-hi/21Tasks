@@ -6,7 +6,7 @@ info:
   title: My Blog API
   version: "1.0"
 paths:
-  /articles:
+  /api/articles:
     post:
       consumes:
       - application/x-www-form-urlencoded
@@ -32,7 +32,7 @@ paths:
       summary: Post a new article
       tags:
       - articles
-  /articles/{id}:
+  /api/articles/{id}:
     get:
       consumes:
       - application/json
@@ -57,7 +57,7 @@ paths:
       summary: Show a single post
       tags:
       - articles
-  /auth/login:
+  /api/auth/login:
     post:
       consumes:
       - application/x-www-form-urlencoded
@@ -97,7 +97,7 @@ paths:
       summary: Login
       tags:
       - auth
-  /auth/logout:
+  /api/auth/logout:
     post:
       description: Clear the authentication token.
       responses:

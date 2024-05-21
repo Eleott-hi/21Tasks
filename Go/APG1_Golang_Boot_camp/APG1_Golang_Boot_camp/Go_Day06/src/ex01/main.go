@@ -13,6 +13,7 @@ import (
 	article_repository "ex01/repositories/article"
 	article_route "ex01/routes/article"
 	auth_route "ex01/routes/auth"
+	html_route "ex01/routes/html"
 	article_service "ex01/services/article"
 )
 
@@ -25,13 +26,17 @@ func main() {
 	Init()
 
 	app := fiber.New()
+
 	database := database.New()
 	article_repository := article_repository.New(database)
 	article_service := article_service.New(article_repository)
 	article_route := article_route.New(article_service)
 
-	app.Mount("/articles", article_route)
-	app.Mount("/auth", auth_route.New())
+	app.Static("/", "./public")
+	// Set up the route for the index page
+	app.Mount("/", html_route.New(article_service))
+	app.Mount("/api/articles", article_route)
+	app.Mount("/api/auth", auth_route.New())
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	log.Println("Server started on port 8888")

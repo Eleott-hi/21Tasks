@@ -52,7 +52,7 @@ func (ar *ArticleRoute) getAll(c *fiber.Ctx) error {
 // @Param id path int true "Post ID"
 // @Success 200 {json} string "Post HTML"
 // @Failure 404 {json} string "Not Found"
-// @Router /articles/{id} [get]
+// @Router /api/articles/{id} [get]
 func (ar *ArticleRoute) get(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil || id < 1 {
@@ -80,7 +80,7 @@ func (ar *ArticleRoute) get(c *fiber.Ctx) error {
 // @Param title formData string true "Article Title"
 // @Param content formData string true "Article Content"
 // @Success 201 {nil} nil "Created"
-// @Router /articles [post]
+// @Router /api/articles [post]
 func (ar *ArticleRoute) create(c *fiber.Ctx) error {
 	var article struct {
 		Title   string `form:"title"`

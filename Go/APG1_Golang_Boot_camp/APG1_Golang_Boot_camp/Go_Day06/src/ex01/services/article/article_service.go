@@ -23,8 +23,8 @@ func (a *ArticleService) Get(id uint) (*models.Article, error) {
 	return a.repository.Get(id)
 }
 
-func (a *ArticleService) GetAll() ([]*models.Article, error) {
-	return a.repository.GetAll()
+func (a *ArticleService) GetAll(filters ...int) ([]*models.Article, error) {
+	return a.repository.GetAll(filters...)
 }
 
 func (a *ArticleService) Update(article *models.Article) error {

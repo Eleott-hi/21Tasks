@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/articles": {
+        "/api/articles": {
             "post": {
                 "description": "Post a new article from the admin panel",
                 "consumes": [
@@ -54,7 +54,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/articles/{id}": {
+        "/api/articles/{id}": {
             "get": {
                 "description": "Get a single post by ID",
                 "consumes": [
@@ -92,7 +92,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/login": {
+        "/api/auth/login": {
             "post": {
                 "description": "Authenticate user and generate a JWT token.",
                 "consumes": [
@@ -152,7 +152,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/logout": {
+        "/api/auth/logout": {
             "post": {
                 "description": "Clear the authentication token.",
                 "tags": [

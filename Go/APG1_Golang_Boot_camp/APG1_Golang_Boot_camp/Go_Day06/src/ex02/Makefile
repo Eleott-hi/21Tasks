@@ -21,5 +21,6 @@ dev: go.mod
 		-command="make run" \
 		-polling \
 		-exclude-dir="docs" \
+		-include-dir="./templates" \
 		-graceful-kill \
 		-color

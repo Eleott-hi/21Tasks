@@ -9,7 +9,7 @@
     "host": "localhost:8888",
     "basePath": "/",
     "paths": {
-        "/articles": {
+        "/api/articles": {
             "post": {
                 "description": "Post a new article from the admin panel",
                 "consumes": [
@@ -48,7 +48,7 @@
                 }
             }
         },
-        "/articles/{id}": {
+        "/api/articles/{id}": {
             "get": {
                 "description": "Get a single post by ID",
                 "consumes": [
@@ -86,7 +86,7 @@
                 }
             }
         },
-        "/auth/login": {
+        "/api/auth/login": {
             "post": {
                 "description": "Authenticate user and generate a JWT token.",
                 "consumes": [
@@ -146,7 +146,7 @@
                 }
             }
         },
-        "/auth/logout": {
+        "/api/auth/logout": {
             "post": {
                 "description": "Clear the authentication token.",
                 "tags": [
