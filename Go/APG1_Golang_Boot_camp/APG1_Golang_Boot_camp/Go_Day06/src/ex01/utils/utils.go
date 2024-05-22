@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"ex01/config"
+	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -48,4 +49,24 @@ func ClearCookie(c *fiber.Ctx, name string) error {
 	})
 
 	return nil
+}
+
+func GetUserMiddleware(c *fiber.Ctx) error {
+	var token struct {
+		Token string `cookie:"token"`
+	}
+
+	if err := c.CookieParser(&token); err != nil || token.Token == "" {
+		ClearCookie(c, "token")
+	} else {
+		payload, err := DecodeJWT(token.Token)
+		if err != nil {
+			log.Println(err)
+			ClearCookie(c, "token")
+		} else {
+			c.Locals("user", payload["username"])
+		}
+	}
+
+	return c.Next()
 }

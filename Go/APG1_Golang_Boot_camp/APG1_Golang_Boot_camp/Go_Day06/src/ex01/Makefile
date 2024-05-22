@@ -1,7 +1,7 @@
 BUILD_DIR := ../build
 PROJECT   := ex01
 
-all: dev
+all: run
 
 run: build
 	$(BUILD_DIR)/$(PROJECT)

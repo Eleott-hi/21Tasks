@@ -1,4 +1,4 @@
-package html
+package routes
 
 import (
 	// "log"
@@ -13,11 +13,8 @@ import (
 
 	"ex01/config"
 	"ex01/models"
-	"ex01/routes/auth"
 	"ex01/services/article"
 	"ex01/utils"
-	// "ex01/models"
-	// "ex01/routes/auth"
 )
 
 type ArticleHTMLRoute struct {
@@ -51,9 +48,10 @@ func New(service article.IService) *fiber.App {
 
 	router.Get("/login", ar.checkIfLoggedIn, ar.loginHTML)
 	router.Post("/login", ar.checkIfLoggedIn, ar.login)
+	router.Post("/logout", ar.logout)
 
-	router.Get("/post", auth.CheckAuthorization, ar.postHTML)
-	router.Post("/post", auth.CheckAuthorization, ar.post)
+	router.Get("/post",  CheckAuthorization, ar.postHTML)
+	router.Post("/post", CheckAuthorization, ar.post)
 
 	return router
 }
@@ -115,7 +113,7 @@ func (ar *ArticleHTMLRoute) show_article(c *fiber.Ctx) error {
 
 func (ar *ArticleHTMLRoute) checkIfLoggedIn(c *fiber.Ctx) error {
 	if user := c.Locals("user"); user != nil {
-		return c.Redirect("/articles/" + user.(string))
+		return c.Redirect("/articles")
 	}
 
 	return c.Next()
@@ -215,4 +213,19 @@ func (ar *ArticleHTMLRoute) post(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).Render("add_article", fiber.Map{
 		"Message": "Post created",
 	})
+}
+
+func (ar *ArticleHTMLRoute) logout(c *fiber.Ctx) error {
+	utils.ClearCookie(c, "token")
+	return c.Redirect("/articles")
+}
+
+func CheckAuthorization(c *fiber.Ctx) error {
+	if user := c.Locals("user"); user == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	return c.Next()
 }

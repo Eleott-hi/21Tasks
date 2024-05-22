@@ -39,3 +39,36 @@ input, textarea {
     border: 1px solid #ccc;
     border-radius: 5px;
 }
+
+button {
+    background-color: #4CAF50; /* Green background */
+    border: none; /* Remove borders */
+    color: white; /* White text */
+    padding: 15px 30px; /* Padding */
+    text-align: center; /* Centered text */
+    text-decoration: none; /* Remove underline */
+    display: inline-block; /* Make the buttons appear side by side */
+    font-size: 16px; /* Increase font size */
+    margin: 8px 2px; /* Margin */
+    cursor: pointer; /* Pointer/hand icon on hover */
+    border-radius: 25px; /* Rounded corners */
+    transition: background-color 0.3s, transform 0.3s; /* Smooth transitions */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow */
+}
+
+button:hover {
+    background-color: #45a049; /* Darker green on hover */
+    transform: translateY(-2px); /* Slightly lift the button on hover */
+}
+
+button:active {
+    background-color: #3e8e41; /* Even darker green on click */
+    transform: translateY(2px); /* Move the button down on click */
+}
+
+button:disabled {
+    background-color: #ccc; /* Grey background for disabled button */
+    color: #666; /* Dark grey text */
+    cursor: not-allowed; /* Not-allowed cursor */
+    box-shadow: none; /* Remove shadow */
+}

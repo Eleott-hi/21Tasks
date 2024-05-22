@@ -1,21 +1,21 @@
 package main
 
 import (
+	"log"
+	"time"
+
 	swagger "github.com/arsmn/fiber-swagger/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
-	"log"
-	"time"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 
 	"ex01/config"
 	"ex01/database"
 	_ "ex01/docs"
 	article_repository "ex01/repositories/article"
-	article_route "ex01/routes/article"
-	"ex01/routes/auth"
-	auth_route "ex01/routes/auth"
-	html_route "ex01/routes/html"
+	html_route "ex01/routes"
 	article_service "ex01/services/article"
+	"ex01/utils"
 )
 
 // @title My Blog API
@@ -31,14 +31,12 @@ func main() {
 	database := database.New()
 	article_repository := article_repository.New(database)
 	article_service := article_service.New(article_repository)
-	article_route := article_route.New(article_service)
 
-	// Configure the rate limiter middleware
 	limiterConfig := limiter.Config{
-		Max:        50,             // 100 requests per second
-		Expiration: 1 * time.Second, // Reset every second
+		Max:        100,
+		Expiration: 1 * time.Second,
 		KeyGenerator: func(c *fiber.Ctx) string {
-			return c.IP() // Rate limit by IP address
+			return c.IP()
 		},
 		LimitReached: func(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusTooManyRequests).SendString("429 Too Many Requests")
@@ -47,13 +45,14 @@ func main() {
 
 	// Apply the rate limiter middleware
 	app.Use("/*", limiter.New(limiterConfig))
+	app.Use("/*", logger.New())
+	app.Use("/*", utils.GetUserMiddleware)
 
-	app.Use("/*", auth.GetUserMiddleware)
-
+	// Serve static files
 	app.Static("/", "./public")
+
+	// Routes
 	app.Mount("/", html_route.New(article_service))
-	app.Mount("/api/articles", article_route)
-	app.Mount("/api/auth", auth_route.New())
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	log.Println("Server started on port 8888")
