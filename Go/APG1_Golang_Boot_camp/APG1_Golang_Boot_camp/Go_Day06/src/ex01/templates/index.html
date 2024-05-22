@@ -11,18 +11,27 @@
 <body>
     <div>
         <img src="/images/amazing_logo.png" alt="Logo">
+        {{if .LoggedIn}}
+        <button><a href="/post">Post</a></button>
+        <button><a href="/api/auth/logout">Logout</a></button>
+        {{ else }}
+        <button><a href="/login">Login</a></button>
+        {{end}}
+
         <h1>{{ .Message }}</h1>
         {{range .Articles}}
         <div>
-            <h2><a href="/post/{{.ID}}">{{.Title}}</a></h2>
+            <h2><a href="/articles/{{.ID}}">{{.Title}}</a></h2>
             <p>{{.Content}}</p>
         </div>
         {{end}}
         <div>
-            {{if gt .Page 1}}
-            <button><a href="/?page={{ sub .Page 1 }}">Prev</a></button>
+            {{if .HasPrev}}
+            <button><a href="/articles?page={{ sub .Page 1 }}">Prev</a></button>
             {{end}}
-            <button><a href="/?page={{ add .Page 1 }}">Next</a></button>
+            {{if .HasNext}}
+            <button><a href="/articles?page={{ add .Page 1 }}">Next</a></button>
+            {{end}}
         </div>
         <script src="/js/script.js"></script>
     </div>

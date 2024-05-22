@@ -33,12 +33,12 @@ func GetUserMiddleware(c *fiber.Ctx) error {
 	}
 
 	if err := c.CookieParser(&token); err != nil || token.Token == "" {
-		c.ClearCookie("token")
+		utils.ClearCookie(c, "token")
 	} else {
 		payload, err := utils.DecodeJWT(token.Token)
 		if err != nil {
 			log.Println(err)
-			c.ClearCookie("token")
+			utils.ClearCookie(c, "token")
 		} else {
 			c.Locals("user", payload["username"])
 		}
@@ -110,13 +110,17 @@ func (ar *AuthRoute) login(c *fiber.Ctx) error {
 // @Success 200 {string} string "ok"
 // @Router /api/auth/logout [post]
 func (ar *AuthRoute) logout(c *fiber.Ctx) error {
-	c.ClearCookie("token")
-	c.Cookie(&fiber.Cookie{
-		Name:     "token",
-		Value:    "",
-		HTTPOnly: true,
-		Expires:  time.Unix(0, 0),
-	})
+	utils.ClearCookie(c, "token")
 	log.Println("User logged out")
 	return nil
+}
+
+func CheckAuthorization(c *fiber.Ctx) error {
+	if user := c.Locals("user"); user == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	return c.Next()
 }

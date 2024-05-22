@@ -5,6 +5,7 @@ import (
 	"ex01/config"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -35,4 +36,16 @@ func DecodeJWT(token string) (jwt.MapClaims, error) {
 	}
 
 	return claims, nil
+}
+
+func ClearCookie(c *fiber.Ctx, name string) error {
+	c.ClearCookie(name)
+	c.Cookie(&fiber.Cookie{
+		Name:     name,
+		Value:    "",
+		HTTPOnly: true,
+		Expires:  time.Unix(0, 0),
+	})
+
+	return nil
 }

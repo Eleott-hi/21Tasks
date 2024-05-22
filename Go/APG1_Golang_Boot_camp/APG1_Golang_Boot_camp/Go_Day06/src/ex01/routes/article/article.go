@@ -1,38 +1,38 @@
 package article
 
 import (
+	// "ex01/routes/auth"
 	"ex01/services/article"
-	"github.com/gofiber/fiber/v2"
 	"log"
 
+	"github.com/gofiber/fiber/v2"
+
 	"ex01/models"
-	"ex01/routes/auth"
 )
 
-type ArticleRoute struct {
+type ApiArticleRoute struct {
 	service article.IService
 	logger  *log.Logger
 }
 
 func New(service article.IService) *fiber.App {
-	ar := ArticleRoute{
-		service: service,
-		logger:  log.Default(),
-	}
+	// ar := ApiArticleRoute{
+	// 	service: service,
+	// 	logger:  log.Default(),
+	// }
 
 	router := fiber.New()
-	router.Get("/", ar.getAll)
-	router.Get("/:id", ar.get)
-	router.Post("/",
-		auth.GetUserMiddleware,
-		ar.checkAuthorization,
-		ar.create,
-	)
+	// router.Get("/", ar.getAll)
+	// router.Get("/:id", ar.get)
+	// router.Post("/",
+		// auth.CheckAuthorization,
+		// ar.create,
+	// )
 
 	return router
 }
 
-func (ar *ArticleRoute) getAll(c *fiber.Ctx) error {
+func (ar *ApiArticleRoute) getAll(c *fiber.Ctx) error {
 	articles, err := ar.service.GetAll()
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -53,7 +53,7 @@ func (ar *ArticleRoute) getAll(c *fiber.Ctx) error {
 // @Success 200 {json} string "Post HTML"
 // @Failure 404 {json} string "Not Found"
 // @Router /api/articles/{id} [get]
-func (ar *ArticleRoute) get(c *fiber.Ctx) error {
+func (ar *ApiArticleRoute) get(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil || id < 1 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -81,7 +81,7 @@ func (ar *ArticleRoute) get(c *fiber.Ctx) error {
 // @Param content formData string true "Article Content"
 // @Success 201 {nil} nil "Created"
 // @Router /api/articles [post]
-func (ar *ArticleRoute) create(c *fiber.Ctx) error {
+func (ar *ApiArticleRoute) create(c *fiber.Ctx) error {
 	var article struct {
 		Title   string `form:"title"`
 		Content string `form:"content"`
@@ -104,14 +104,4 @@ func (ar *ArticleRoute) create(c *fiber.Ctx) error {
 
 	c.Status(fiber.StatusCreated)
 	return nil
-}
-
-func (ar *ArticleRoute) checkAuthorization(c *fiber.Ctx) error {
-	if user := c.Locals("user"); user == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Unauthorized",
-		})
-	}
-
-	return c.Next()
 }
